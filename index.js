@@ -28,6 +28,7 @@ client.connect(err => {
     console.log("Connected successfully");
 
     const groupCollection = client.db(process.env.DB_NAME).collection("group");
+    const destinationCollection = client.db(process.env.DB_NAME).collection("destination");
     const adminCollection = client.db(process.env.DB_NAME).collection("admin");
 
     app.post('/checkAdmin', (req, res) => {
@@ -58,7 +59,7 @@ client.connect(err => {
         console.log(group_name, fb_url, group_description, like_count, logo_image);
 
 
-        console.log("Processing Image...");
+        console.log("Processing Data...");
 
         const newImg = logo_image.data;
         const encImg = newImg.toString('base64');
@@ -70,6 +71,33 @@ client.connect(err => {
         };
 
         groupCollection.insertOne({ group_name, fb_url, group_description, like_count, logo })
+            .then(result => {
+                console.log("Data sent successfully !!");
+                res.send(result.insertedCount > 0);
+            })
+    });
+
+    app.post('/addDescription', (req, res) => {
+        const destination_name = req.body.destination_name;
+        const destination_district = req.body.destination_district;
+        const destination_description = req.body.destination_description;
+        const like_count = req.body.like_count;
+        const destinationImage = req.files.destinationImage;
+        console.log(destination_name, destination_district, destination_description, like_count, destinationImage);
+
+
+        console.log("Processing Data...");
+
+        const newImg = destinationImage.data;
+        const encImg = newImg.toString('base64');
+
+        const destImage = {
+            contentType: destinationImage.mimetype,  // mimetype = jpeg/png/jpg... etc
+            size: destinationImage.size,
+            img: Buffer.from(encImg, 'base64')
+        };
+
+        destinationCollection.insertOne({ destination_name, destination_district, destination_description, like_count, destImage })
             .then(result => {
                 console.log("Data sent successfully !!");
                 res.send(result.insertedCount > 0);
