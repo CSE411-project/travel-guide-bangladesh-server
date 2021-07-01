@@ -72,7 +72,7 @@ client.connect(err => {
         });
     });
 
-    app.post('/updateUserBookmark', (req, res) => {
+    app.post('/updateBookmark', (req, res) => {
         userCollection.updateOne(
             { email: req.body.email },
             {
@@ -82,11 +82,12 @@ client.connect(err => {
             .then(result => {
                 console.log(result);
                 console.log("Bookmarks updated successfully");
-            })
+            });
     });
 
-    app.post('/updateUserLikedDestination', (req, res) => {
-        destinationCollection.updateOne(
+    app.post('/updateLikedDestination', (req, res) => {
+        // update user collection
+        userCollection.updateOne(
             { email: req.body.email },
             {
                 $set: {liked_destinations: req.body.likedDestinations}
@@ -94,8 +95,21 @@ client.connect(err => {
         )
             .then(result => {
                 console.log(result);
-                console.log("Liked Destination updated successfully");
-            })
+                console.log("Destination like updated successfully");
+            });
+        
+        // update destination groupCollection  
+        const destId = new mongo.ObjectID(req.body.destinationId);
+        destinationCollection.updateOne(
+            { '_id': destId },
+            { 
+                $inc: { like_count: req.body.likeIncrement }
+            }
+        )
+            .then(result => {
+                console.log(result);
+                console.log("Like updated successfully");
+            });
     });
 
     app.get('/groupList', (req, res) => {
@@ -143,7 +157,7 @@ client.connect(err => {
         const destination_name = req.body.destination_name;
         const destination_district = req.body.destination_district;
         const destination_description = req.body.destination_description;
-        const like_count = req.body.like_count;
+        const like_count = Number(req.body.like_count);
         const destinationImages = req.files;
         
         const getDestImage = async () => {
