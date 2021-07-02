@@ -190,7 +190,7 @@ client.connect(err => {
         }
 
         getDestImage().then(images => {
-            destinationCollection.insertOne({ destination_name, destination_district, destination_description, like_count, destImageURL: images })
+            destinationCollection.insertOne({ destination_name, destination_district, destination_description, destination_comments: [], like_count, destImageURL: images })
             .then(result => {
                 console.log("Destination data sent successfully !!");
                 res.send(result.insertedCount > 0);
@@ -207,6 +207,21 @@ client.connect(err => {
                 res.status(200).send(documents[0])
             });
     })
+
+    app.post('/updateComment', (req, res) => {
+        const destId = new mongo.ObjectId(req.body.destinationId);
+
+        destinationCollection.updateOne(
+            { '_id': destId },
+            {
+                $set: { destination_comments: req.body.comments }
+            }
+        )
+            .then(result => {
+                console.log(result);
+                res.status(200).send(result.modifiedCount > 0);
+            });
+    });
 });
 
 app.listen(process.env.PORT || port, () => {
